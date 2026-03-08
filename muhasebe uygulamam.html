@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cüzdan">
+<title>Cüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;600;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080810;
+  --s1: #111118;
+  --s2: #1a1a24;
+  --s3: #22222e;
+  --border: rgba(255,255,255,0.07);
+  --gold: #f0c040;
+  --gold2: #f5d678;
+  --green: #3ddc84;
+  --red: #ff6b6b;
+  --blue: #60a5fa;
+  --text: #f4f4f8;
+  --sub: #9090a8;
+  --r: 16px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Anybody', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* GRAIN OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* NAV TABS */
+.nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(8,8,16,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 10px 0 env(safe-area-inset-bottom, 10px);
+  z-index: 100;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-family: 'Anybody', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+
+.nav-btn .icon { font-size: 20px; line-height: 1; }
+.nav-btn.active { color: var(--gold); }
+
+/* PAGES */
+.page { display: none; padding: 0 0 90px; position: relative; z-index: 1; }
+.page.active { display: block; }
+
+/* HEADER */
+.page-header {
+  padding: 56px 20px 20px;
+  background: linear-gradient(180deg, rgba(240,192,64,0.05) 0%, transparent 100%);
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.page-title span { color: var(--gold); }
+
+.ay-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 16px;
+}
+
+.ay-nav button {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.ay-nav button:hover { color: var(--gold); }
+
+.ay-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* SUMMARY CARDS */
+.summary {
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.scard {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.scard:active { transform: scale(0.97); }
+
+.scard.wide { grid-column: 1 / -1; }
+
+.scard::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  opacity: 0.06;
+}
+
+.scard.gold::after { background: var(--gold); }
+.scard.green::after { background: var(--green); }
+.scard.total::after { background: var(--blue); }
+
+.scard-icon { font-size: 18px; margin-bottom: 8px; }
+.scard-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--sub); margin-bottom: 6px; }
+.scard.gold .scard-label { color: var(--gold); }
+.scard.green .scard-label { color: var(--green); }
+
+.scard-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+}
+
+.scard.wide .scard-amount { font-size: 30px; }
+.scard-count { font-size: 10px; color: var(--sub); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+/* LIMIT WIDGET */
+.limit-widget {
+  margin: 0 16px 16px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+.limit-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.limit-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--sub); }
+
+.limit-values {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.limit-values strong { color: var(--text); }
+
+.limit-track {
+  height: 8px;
+  background: var(--s3);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.limit-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  transition: width 0.6s cubic-bezier(.4,0,.2,1), background 0.4s;
+}
+
+.limit-fill.warn { background: linear-gradient(90deg, var(--gold), var(--red)); }
+.limit-fill.over { background: var(--red); }
+
+.limit-status {
+  font-size: 11px;
+  color: var(--sub);
+  font-family: 'DM Mono', monospace;
+}
+
+.limit-status.warn { color: var(--gold); }
+.limit-status.over { color: var(--red); font-weight: 700; }
+
+/* ALERT BANNER */
+.alert-banner {
+  margin: 0 16px 12px;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: none;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { border-color: rgba(255,107,107,0.3); }
+  50% { border-color: rgba(255,107,107,0.7); }
+}
+
+.alert-banner.show { display: flex; align-items: center; gap: 10px; }
+.alert-banner .alert-icon { font-size: 20px; }
+.alert-banner .alert-text { font-size: 13px; font-weight: 700; color: var(--red); }
+.alert-banner .alert-sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+/* DIST BAR */
+.dist-wrap { margin: 0 16px 20px; }
+.dist-header { display: flex; justify-content: space-between; font-size: 10px; color: var(--sub); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+.dist-bar { height: 5px; background: var(--s3); border-radius: 99px; overflow: hidden; display: flex; }
+.dist-fill { height: 100%; transition: width 0.5s ease; }
+.dist-fill.gold { background: var(--gold); }
+.dist-fill.green { background: var(--green); }
+
+/* SECTION HEADER */
+.section-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-bottom: 10px;
+}
+
+.section-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--sub); }
+
+.filter-row { display: flex; gap: 6px; }
+
+.ftab {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--sub);
+  font-family: 'Anybody', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ftab.active { background: var(--s2); color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+/* LIST */
+.hlist { padding: 0 16px; }
+
+.hitem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  animation: slideIn 0.25s ease both;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.hitem-left { display: flex; align-items: center; gap: 12px; }
+
+.hitem-badge {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.hitem-badge.kart { background: rgba(240,192,64,0.12); }
+.hitem-badge.nakit { background: rgba(61,220,132,0.12); }
+
+.hitem-desc { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.hitem-meta { font-size: 11px; color: var(--sub); font-family: 'DM Mono', monospace; }
+
+.hitem-right { display: flex; align-items: center; gap: 10px; }
+
+.hitem-amount { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; }
+.hitem-amount.kart { color: var(--gold2); }
+.hitem-amount.nakit { color: var(--green); }
+
+.btn-del {
+  background: none; border: none;
+  color: rgba(255,255,255,0.2);
+  font-size: 18px; cursor: pointer; padding: 2px;
+  transition: color 0.2s; line-height: 1;
+}
+
+.btn-del:hover { color: var(--red); }
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--sub);
+}
+
+.empty-state .e-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-state p { font-size: 13px; }
+
+/* ===== ADD PAGE ===== */
+.add-form {
+  padding: 0 16px;
+}
+
+.type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.type-btn {
+  padding: 16px;
+  border-radius: var(--r);
+  border: 2px solid var(--border);
+  background: var(--s1);
+  color: var(--sub);
+  font-family: 'Anybody', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.type-btn .tb-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+
+.type-btn.active.kart {
+  border-color: var(--gold);
+  background: rgba(240,192,64,0.08);
+  color: var(--gold);
+}
+
+.type-btn.active.nakit {
+  border-color: var(--green);
+  background: rgba(61,220,132,0.08);
+  color: var(--green);
+}
+
+.field { margin-bottom: 14px; }
+
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sub);
+  margin-bottom: 6px;
+}
+
+input[type=text], input[type=number], input[type=date], select, textarea {
+  width: 100%;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+
+input:focus, select:focus { border-color: rgba(240,192,64,0.5); }
+input::placeholder { color: var(--sub); }
+select option { background: #1a1a24; }
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.cat-btn {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--sub);
+  font-family: 'Anybody', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 4px;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.cat-btn .c-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+.cat-btn.active { background: var(--s3); border-color: var(--gold); color: var(--gold); }
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--r);
+  border: none;
+  background: var(--gold);
+  color: #0a0a0a;
+  font-family: 'Anybody', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+
+/* CSV IMPORT */
+.csv-box {
+  border: 2px dashed var(--border);
+  border-radius: var(--r);
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  margin-bottom: 14px;
+  background: var(--s1);
+}
+
+.csv-box:hover { border-color: var(--gold); }
+.csv-box .csv-icon { font-size: 36px; margin-bottom: 8px; }
+.csv-box .csv-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.csv-box .csv-sub { font-size: 11px; color: var(--sub); line-height: 1.6; }
+
+#csvFileInput { display: none; }
+
+.csv-preview {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+  display: none;
+}
+
+.csv-preview-title { font-size: 12px; font-weight: 700; color: var(--sub); margin-bottom: 8px; }
+.csv-preview-row { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--sub); padding: 3px 0; border-bottom: 1px solid var(--border); }
+.csv-preview-row:last-child { border-bottom: none; }
+.csv-preview-row span { color: var(--text); }
+
+/* ===== SETTINGS PAGE ===== */
+.settings-section {
+  padding: 0 16px;
+  margin-bottom: 24px;
+}
+
+.settings-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--sub); margin-bottom: 12px; }
+
+.setting-item {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-left {}
+.setting-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.setting-desc { font-size: 11px; color: var(--sub); }
+
+.setting-input {
+  width: 120px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--gold);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  padding: 8px 10px;
+  outline: none;
+  text-align: right;
+}
+
+.btn-save-setting {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--gold);
+  font-family: 'Anybody', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: 8px;
+}
+
+.btn-save-setting:hover { background: rgba(240,192,64,0.1); }
+
+/* STATS PAGE */
+.stat-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+}
+
+.stat-card.wide { grid-column: 1 / -1; }
+.stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--sub); margin-bottom: 6px; }
+.stat-val { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; }
+.stat-sub { font-size: 11px; color: var(--sub); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+/* CHART BARS */
+.chart-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+.chart-bar {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 4px 4px 0 0;
+  background: var(--gold);
+  transition: height 0.5s cubic-bezier(.4,0,.2,1), opacity 0.2s;
+  position: relative;
+}
+
+.chart-bar.nakit { background: var(--green); }
+.chart-bar.empty { background: var(--s3); opacity: 0.5; }
+.chart-bar.today { background: var(--blue); }
+.chart-bar.current-month { background: var(--blue); }
+.chart-bar:hover { opacity: 0.8; }
+
+.chart-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  display: none;
+  z-index: 10;
+}
+
+.chart-bar-wrap:hover .chart-tooltip { display: block; }
+
+/* DAY LIST */
+.day-section { margin-bottom: 12px; }
+.day-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.day-section-date { font-size: 12px; font-weight: 700; color: var(--sub); }
+.day-section-date strong { color: var(--text); }
+.day-section-total { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--gold2); font-weight: 500; }
+
+/* MONTH / YEAR ROW */
+.period-row {
+  display: flex;
+  align-items: center;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.period-row-left { flex: 1; }
+.period-row-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.period-row-sub { font-size: 11px; color: var(--sub); font-family: 'DM Mono', monospace; }
+.period-row-bar-wrap { flex: 1; height: 4px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+.period-row-bar { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.5s ease; }
+.period-row-amount { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: var(--gold2); white-space: nowrap; }
+
+.cat-stats { padding: 0 16px; }
+.cat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cat-row:last-child { border-bottom: none; }
+
+.cat-row-left { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.cat-row-bar-wrap { flex: 1; margin: 0 12px; height: 4px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+.cat-row-bar { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.5s ease; }
+.cat-row-amount { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--sub); white-space: nowrap; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: rgba(61,220,132,0.15); border-color: rgba(61,220,132,0.3); color: var(--green); }
+.toast.error { background: rgba(255,107,107,0.15); border-color: rgba(255,107,107,0.3); color: var(--red); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- PAGES -->
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="page-header">
+    <div class="page-title">cüzdan<span>.</span></div>
+    <div class="ay-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <span class="ay-text" id="ayLabel">—</span>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="scard gold">
+      <div class="scard-icon">💳</div>
+      <div class="scard-label">Banka Kartı</div>
+      <div class="scard-amount" id="kartTotal">₺0</div>
+      <div class="scard-count" id="kartCount">0 işlem</div>
+    </div>
+    <div class="scard green">
+      <div class="scard-icon">💵</div>
+      <div class="scard-label">Nakit</div>
+      <div class="scard-amount" id="nakitTotal">₺0</div>
+      <div class="scard-count" id="nakitCount">0 işlem</div>
+    </div>
+    <div class="scard wide total">
+      <div class="scard-icon">📊</div>
+      <div class="scard-label">Bu Ay Toplam</div>
+      <div class="scard-amount" id="toplamTotal">₺0</div>
+      <div class="scard-count" id="toplamCount">0 işlem</div>
+    </div>
+  </div>
+
+  <div class="alert-banner" id="alertBanner">
+    <div class="alert-icon">🚨</div>
+    <div>
+      <div class="alert-text">Aylık limit aşıldı!</div>
+      <div class="alert-sub" id="alertSub">—</div>
+    </div>
+  </div>
+
+  <div class="limit-widget" id="limitWidget">
+    <div class="limit-top">
+      <div class="limit-label">📈 Aylık Limit</div>
+      <div class="limit-values"><strong id="limitSpent">₺0</strong> / <span id="limitMax">—</span></div>
+    </div>
+    <div class="limit-track">
+      <div class="limit-fill" id="limitFill" style="width:0%"></div>
+    </div>
+    <div class="limit-status" id="limitStatus">Limit ayarlanmadı → Ayarlar</div>
+  </div>
+
+  <div class="dist-wrap">
+    <div class="dist-header">
+      <span>💳 Kart <span id="kartPct">0%</span></span>
+      <span>💵 Nakit <span id="nakitPct">0%</span></span>
+    </div>
+    <div class="dist-bar">
+      <div class="dist-fill gold" id="kartBar" style="width:0%"></div>
+      <div class="dist-fill green" id="nakitBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="section-hdr">
+    <div class="section-title">Harcamalar</div>
+    <div class="filter-row">
+      <button class="ftab active" onclick="setFilter('hepsi',this)">Hepsi</button>
+      <button class="ftab" onclick="setFilter('kart',this)">Kart</button>
+      <button class="ftab" onclick="setFilter('nakit',this)">Nakit</button>
+    </div>
+  </div>
+
+  <div class="hlist" id="hlist"></div>
+</div>
+
+<!-- ADD -->
+<div class="page" id="page-add">
+  <div class="page-header">
+    <div class="page-title">ekle<span>.</span></div>
+  </div>
+
+  <div class="add-form">
+    <div class="type-selector">
+      <button class="type-btn kart active" onclick="setType('kart')">
+        <span class="tb-icon">💳</span>Banka Kartı
+      </button>
+      <button class="type-btn nakit" onclick="setType('nakit')">
+        <span class="tb-icon">💵</span>Nakit
+      </button>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Açıklama</div>
+      <input type="text" id="descInput" placeholder="Markette ne aldın?" maxlength="50">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Tutar (₺)</div>
+      <input type="number" id="amountInput" placeholder="0.00" min="0" step="0.01">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Kategori</div>
+      <div class="cat-grid" id="catGrid">
+        <button class="cat-btn active" data-cat="Market" onclick="setCat(this)"><span class="c-icon">🛒</span>Market</button>
+        <button class="cat-btn" data-cat="Yemek" onclick="setCat(this)"><span class="c-icon">🍔</span>Yemek</button>
+        <button class="cat-btn" data-cat="Ulaşım" onclick="setCat(this)"><span class="c-icon">🚗</span>Ulaşım</button>
+        <button class="cat-btn" data-cat="Fatura" onclick="setCat(this)"><span class="c-icon">💡</span>Fatura</button>
+        <button class="cat-btn" data-cat="Eğlence" onclick="setCat(this)"><span class="c-icon">🎬</span>Eğlence</button>
+        <button class="cat-btn" data-cat="Sağlık" onclick="setCat(this)"><span class="c-icon">💊</span>Sağlık</button>
+        <button class="cat-btn" data-cat="Giyim" onclick="setCat(this)"><span class="c-icon">👗</span>Giyim</button>
+        <button class="cat-btn" data-cat="Diğer" onclick="setCat(this)"><span class="c-icon">📦</span>Diğer</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Tarih</div>
+      <input type="date" id="dateInput">
+    </div>
+
+    <button class="btn-primary" onclick="ekle()">Harcama Ekle →</button>
+
+    <!-- CSV IMPORT -->
+    <div style="margin-top:28px; margin-bottom: 10px;">
+      <div class="field-label" style="margin-bottom:12px;">📂 Banka Ekstresi İmport (CSV)</div>
+
+      <div class="csv-box" onclick="document.getElementById('csvFileInput').click()">
+        <div class="csv-icon">📄</div>
+        <div class="csv-title">CSV Dosyası Seç</div>
+        <div class="csv-sub">Bankanın internet şubesinden indirdiğin<br>hesap ekstresini buraya yükle</div>
+      </div>
+
+      <input type="file" id="csvFileInput" accept=".csv,.txt" onchange="handleCSV(this)">
+
+      <div class="csv-preview" id="csvPreview">
+        <div class="csv-preview-title">Önizleme (ilk 3 satır)</div>
+        <div id="csvPreviewRows"></div>
+      </div>
+
+      <div id="csvMapArea" style="display:none">
+        <div class="field">
+          <div class="field-label">Açıklama Sütunu</div>
+          <select id="csvDescCol"></select>
+        </div>
+        <div class="field">
+          <div class="field-label">Tutar Sütunu</div>
+          <select id="csvAmtCol"></select>
+        </div>
+        <div class="field">
+          <div class="field-label">Tarih Sütunu</div>
+          <select id="csvDateCol"></select>
+        </div>
+        <div class="field">
+          <div class="field-label">İşlem Tipi</div>
+          <div class="type-selector" style="margin-bottom:0">
+            <button class="type-btn kart active" onclick="setCsvType('kart',this)"><span class="tb-icon">💳</span>Kart</button>
+            <button class="type-btn nakit" onclick="setCsvType('nakit',this)"><span class="tb-icon">💵</span>Nakit</button>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="importCSV()">İmport Et →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="page" id="page-stats">
+  <div class="page-header">
+    <div class="page-title">istatistik<span>.</span></div>
+  </div>
+
+  <!-- View Mode Tabs -->
+  <div style="padding: 0 16px; margin-bottom: 16px;">
+    <div style="display:flex; gap:8px;">
+      <button class="ftab active" id="vtab-gun" onclick="setViewMode('gun',this)">Günlük</button>
+      <button class="ftab" id="vtab-ay" onclick="setViewMode('ay',this)">Aylık</button>
+      <button class="ftab" id="vtab-yil" onclick="setViewMode('yil',this)">Yıllık</button>
+    </div>
+  </div>
+
+  <!-- GUNLUK VIEW -->
+  <div id="view-gun">
+    <div style="padding:0 16px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);">Bu Ay Günlük</div>
+      <div class="ay-text" id="gun-ay-label" style="font-size:12px;"></div>
+    </div>
+    <!-- Mini summary -->
+    <div style="padding:0 16px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
+      <div class="stat-card" style="text-align:center;">
+        <div class="stat-label">En Yüksek Gün</div>
+        <div class="stat-val" style="font-size:14px;" id="gun-max-val">—</div>
+        <div class="stat-sub" id="gun-max-day">—</div>
+      </div>
+      <div class="stat-card" style="text-align:center;">
+        <div class="stat-label">Günlük Ort.</div>
+        <div class="stat-val" style="font-size:14px;" id="gun-avg-val">—</div>
+        <div class="stat-sub">harcama/gün</div>
+      </div>
+      <div class="stat-card" style="text-align:center;">
+        <div class="stat-label">Harcama Günü</div>
+        <div class="stat-val" style="font-size:14px;" id="gun-count-val">—</div>
+        <div class="stat-sub">aktif gün</div>
+      </div>
+    </div>
+    <!-- Bar chart -->
+    <div style="padding:0 16px; margin-bottom:8px;">
+      <div id="gun-chart" style="display:flex; align-items:flex-end; gap:3px; height:120px; overflow-x:auto; padding-bottom:4px;"></div>
+      <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--sub); font-family:'DM Mono',monospace;" id="gun-chart-labels"></div>
+    </div>
+    <!-- Daily list -->
+    <div style="padding:0 16px;" id="gun-list"></div>
+  </div>
+
+  <!-- AYLIK VIEW -->
+  <div id="view-ay" style="display:none;">
+    <div style="padding:0 16px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);">Bu Yıl Aylık</div>
+      <div class="ay-text" id="ay-yil-label" style="font-size:12px;"></div>
+    </div>
+    <!-- Mini summary -->
+    <div style="padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+      <div class="stat-card">
+        <div class="stat-label">En Yüksek Ay</div>
+        <div class="stat-val" style="font-size:16px;" id="ay-max-val">—</div>
+        <div class="stat-sub" id="ay-max-name">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Aylık Ortalama</div>
+        <div class="stat-val" style="font-size:16px;" id="ay-avg-val">—</div>
+        <div class="stat-sub">aktif aylarda</div>
+      </div>
+      <div class="stat-card wide">
+        <div class="stat-label">Yıl Toplamı</div>
+        <div class="stat-val" id="ay-total-val">—</div>
+        <div class="stat-sub" id="ay-total-sub">—</div>
+      </div>
+    </div>
+    <!-- Bar chart -->
+    <div style="padding:0 16px; margin-bottom:8px;">
+      <div id="ay-chart" style="display:flex; align-items:flex-end; gap:6px; height:130px;"></div>
+      <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--sub); font-family:'DM Mono',monospace;" id="ay-chart-labels"></div>
+    </div>
+    <!-- Monthly list -->
+    <div style="padding:0 16px; margin-top:16px;" id="ay-list"></div>
+  </div>
+
+  <!-- YILLIK VIEW -->
+  <div id="view-yil" style="display:none;">
+    <div style="padding:0 16px; margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);">Yıl Yıl Karşılaştırma</div>
+    </div>
+    <!-- Bar chart -->
+    <div style="padding:0 16px; margin-bottom:16px;">
+      <div id="yil-chart" style="display:flex; align-items:flex-end; gap:12px; height:150px; justify-content:center;"></div>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px; font-size:11px; color:var(--sub); font-family:'DM Mono',monospace;" id="yil-chart-labels"></div>
+    </div>
+    <!-- Year list -->
+    <div style="padding:0 16px;" id="yil-list"></div>
+  </div>
+
+  <!-- CATEGORY breakdown (always visible below) -->
+  <div style="margin-top:20px;">
+    <div class="section-hdr">
+      <div class="section-title">Kategoriye Göre</div>
+      <div style="font-size:11px;color:var(--sub);font-family:'DM Mono',monospace;" id="cat-scope-label"></div>
+    </div>
+    <div class="cat-stats" id="catStats"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="page-header">
+    <div class="page-title">ayarlar<span>.</span></div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">Aylık Limit</div>
+    <div class="setting-item">
+      <div class="setting-left">
+        <div class="setting-name">Toplam Limit</div>
+        <div class="setting-desc">Bu tutarı geçince uyarı alırsın</div>
+      </div>
+      <div style="display:flex;align-items:center">
+        <input type="number" class="setting-input" id="limitInput" placeholder="₺0" min="0">
+        <button class="btn-save-setting" onclick="saveLimit()">Kaydet</button>
+      </div>
+    </div>
+    <div class="setting-item">
+      <div class="setting-left">
+        <div class="setting-name">Uyarı Eşiği</div>
+        <div class="setting-desc">Limitin yüzde kaçında sarı uyarı</div>
+      </div>
+      <div style="display:flex;align-items:center">
+        <input type="number" class="setting-input" id="warnInput" placeholder="80" min="10" max="99">
+        <button class="btn-save-setting" onclick="saveWarn()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">Veri</div>
+    <div class="setting-item">
+      <div class="setting-left">
+        <div class="setting-name">Tüm Veriyi Sıfırla</div>
+        <div class="setting-desc">Bu işlem geri alınamaz</div>
+      </div>
+      <button onclick="resetAll()" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--red);border-radius:8px;padding:8px 14px;font-family:'Anybody',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Sıfırla</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="goPage('home',this)"><span class="icon">🏠</span>Ana</button>
+  <button class="nav-btn" onclick="goPage('add',this)"><span class="icon">➕</span>Ekle</button>
+  <button class="nav-btn" onclick="goPage('stats',this)"><span class="icon">📊</span>İstatistik</button>
+  <button class="nav-btn" onclick="goPage('settings',this)"><span class="icon">⚙️</span>Ayarlar</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const CAT_ICONS = {Market:'🛒',Yemek:'🍔',Ulaşım:'🚗',Fatura:'💡',Eğlence:'🎬',Sağlık:'💊',Giyim:'👗',Diğer:'📦'};
+
+let now = new Date();
+let curYear = now.getFullYear();
+let curMonth = now.getMonth();
+let activeType = 'kart';
+let activeCat = 'Market';
+let activeFilter = 'hepsi';
+let csvData = null;
+let csvType = 'kart';
+
+document.getElementById('dateInput').value = now.toISOString().split('T')[0];
+
+// Storage helpers
+function getKey() { return `cuzdan_${curYear}_${curMonth}`; }
+function getData() { try { return JSON.parse(localStorage.getItem(getKey())||'[]'); } catch(e){ return []; } }
+function saveData(arr) { localStorage.setItem(getKey(), JSON.stringify(arr)); }
+function getSettings() { try { return JSON.parse(localStorage.getItem('cuzdan_settings')||'{}'); } catch(e){ return {}; } }
+function saveSettings(s) { localStorage.setItem('cuzdan_settings', JSON.stringify(s)); }
+
+function fmt(n) { return '₺'+Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// Navigation
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id === 'stats') { setViewMode(viewMode, document.getElementById('vtab-'+viewMode)); }
+  if(id === 'settings') loadSettings();
+}
+
+function changeMonth(dir) {
+  curMonth += dir;
+  if(curMonth > 11){ curMonth = 0; curYear++; }
+  if(curMonth < 0){ curMonth = 11; curYear--; }
+  render();
+}
+
+// Type / Cat
+function setType(t) {
+  activeType = t;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.page#page-add .type-btn.${t}`).classList.add('active');
+}
+
+function setCat(el) {
+  activeCat = el.dataset.cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+// ADD
+function ekle() {
+  const desc = document.getElementById('descInput').value.trim();
+  const amount = parseFloat(document.getElementById('amountInput').value);
+  const date = document.getElementById('dateInput').value;
+
+  if(!desc) { toast('Açıklama yaz bro 😅','error'); return; }
+  if(!amount || amount <= 0) { toast('Geçerli tutar gir 💸','error'); return; }
+  if(!date) { toast('Tarih seçmeyi unuttun','error'); return; }
+
+  const arr = getData();
+  arr.unshift({ id: Date.now(), desc, amount, cat: activeCat, date, type: activeType });
+  saveData(arr);
+
+  document.getElementById('descInput').value = '';
+  document.getElementById('amountInput').value = '';
+  toast('Harcama eklendi ✓','success');
+  render();
+  checkLimit();
+}
+
+function sil(id) {
+  saveData(getData().filter(x => x.id !== id));
+  render();
+}
+
+// RENDER
+function render() {
+  document.getElementById('ayLabel').textContent = `${AYLAR[curMonth]} ${curYear}`;
+  const data = getData();
+  const kart = data.filter(x => x.type==='kart');
+  const nakit = data.filter(x => x.type==='nakit');
+  const ks = kart.reduce((a,b)=>a+b.amount,0);
+  const ns = nakit.reduce((a,b)=>a+b.amount,0);
+  const t = ks + ns;
+
+  document.getElementById('kartTotal').textContent = fmt(ks);
+  document.getElementById('nakitTotal').textContent = fmt(ns);
+  document.getElementById('toplamTotal').textContent = fmt(t);
+  document.getElementById('kartCount').textContent = kart.length + ' işlem';
+  document.getElementById('nakitCount').textContent = nakit.length + ' işlem';
+  document.getElementById('toplamCount').textContent = data.length + ' işlem';
+
+  const kp = t>0?Math.round(ks/t*100):0;
+  const np = t>0?Math.round(ns/t*100):0;
+  document.getElementById('kartBar').style.width = kp+'%';
+  document.getElementById('nakitBar').style.width = np+'%';
+  document.getElementById('kartPct').textContent = kp+'%';
+  document.getElementById('nakitPct').textContent = np+'%';
+
+  renderLimit(t);
+  renderList();
+}
+
+function renderLimit(toplam) {
+  const s = getSettings();
+  const limit = parseFloat(s.limit) || 0;
+  const warn = parseFloat(s.warn) || 80;
+
+  if(!limit) {
+    document.getElementById('limitStatus').textContent = 'Limit ayarlanmadı → Ayarlar';
+    document.getElementById('limitStatus').className = 'limit-status';
+    document.getElementById('limitFill').style.width = '0%';
+    document.getElementById('limitMax').textContent = '—';
+    document.getElementById('limitSpent').textContent = fmt(toplam);
+    document.getElementById('alertBanner').classList.remove('show');
+    return;
+  }
+
+  const pct = Math.min((toplam/limit)*100, 100);
+  const fill = document.getElementById('limitFill');
+  const status = document.getElementById('limitStatus');
+
+  fill.style.width = pct+'%';
+  document.getElementById('limitMax').textContent = fmt(limit);
+  document.getElementById('limitSpent').textContent = fmt(toplam);
+
+  if(toplam > limit) {
+    fill.className = 'limit-fill over';
+    status.className = 'limit-status over';
+    status.textContent = `🔴 ${fmt(toplam-limit)} aşıldı!`;
+    document.getElementById('alertBanner').classList.add('show');
+    document.getElementById('alertSub').textContent = `${fmt(toplam)} harcadın, limitin ${fmt(limit)}`;
+  } else if(pct >= warn) {
+    fill.className = 'limit-fill warn';
+    status.className = 'limit-status warn';
+    status.textContent = `⚠️ %${Math.round(pct)} kullandın, dikkat!`;
+    document.getElementById('alertBanner').classList.remove('show');
+  } else {
+    fill.className = 'limit-fill';
+    status.className = 'limit-status';
+    status.textContent = `%${Math.round(pct)} kullandın, ${fmt(limit-toplam)} kaldı`;
+    document.getElementById('alertBanner').classList.remove('show');
+  }
+}
+
+function checkLimit() {
+  const s = getSettings();
+  const limit = parseFloat(s.limit)||0;
+  if(!limit) return;
+  const t = getData().reduce((a,b)=>a+b.amount,0);
+  if(t > limit) toast(`🚨 Limit aşıldı! ${fmt(t-limit)} fazla`, 'error');
+}
+
+function renderList() {
+  const data = getData();
+  const filtered = activeFilter==='hepsi' ? data : data.filter(x=>x.type===activeFilter);
+  const list = document.getElementById('hlist');
+
+  if(!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="e-icon">🪙</div><p>Bu ay harcama yok bro</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => `
+    <div class="hitem">
+      <div class="hitem-left">
+        <div class="hitem-badge ${item.type}">${CAT_ICONS[item.cat]||'📦'}</div>
+        <div>
+          <div class="hitem-desc">${item.desc}</div>
+          <div class="hitem-meta">${item.cat} · ${fmtDate(item.date)}</div>
+        </div>
+      </div>
+      <div class="hitem-right">
+        <div class="hitem-amount ${item.type}">${fmt(item.amount)}</div>
+        <button class="btn-del" onclick="sil(${item.id})">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function fmtDate(d) {
+  if(!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${day} ${AYLAR[parseInt(m)-1].slice(0,3)}`;
+}
+
+// ========== STATS ==========
+let viewMode = 'gun';
+
+function setViewMode(mode, btn) {
+  viewMode = mode;
+  document.querySelectorAll('#page-stats .ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('view-gun').style.display = mode==='gun' ? 'block' : 'none';
+  document.getElementById('view-ay').style.display  = mode==='ay'  ? 'block' : 'none';
+  document.getElementById('view-yil').style.display = mode==='yil' ? 'block' : 'none';
+  renderStats();
+}
+
+function renderStats() {
+  if(viewMode === 'gun') renderGunluk();
+  else if(viewMode === 'ay') renderAylik();
+  else renderYillik();
+  renderCatStats();
+}
+
+/* --- GUNLUK --- */
+function renderGunluk() {
+  const data = getData();
+  document.getElementById('gun-ay-label').textContent = `${AYLAR[curMonth]} ${curYear}`;
+
+  // Group by day
+  const byDay = {};
+  data.forEach(x => {
+    const d = x.date || '';
+    if(!byDay[d]) byDay[d] = { total:0, items:[] };
+    byDay[d].total += x.amount;
+    byDay[d].items.push(x);
+  });
+
+  const days = Object.keys(byDay).sort((a,b)=>b.localeCompare(a));
+  const totals = days.map(d => byDay[d].total);
+  const maxVal = Math.max(...totals, 1);
+  const activeDays = days.length;
+  const avgVal = activeDays ? totals.reduce((a,b)=>a+b,0)/activeDays : 0;
+  const maxDay = days[totals.indexOf(Math.max(...totals))];
+
+  document.getElementById('gun-max-val').textContent = maxDay ? fmt(byDay[maxDay].total) : '—';
+  document.getElementById('gun-max-day').textContent = maxDay ? fmtDate(maxDay) : '—';
+  document.getElementById('gun-avg-val').textContent = fmt(avgVal);
+  document.getElementById('gun-count-val').textContent = activeDays;
+
+  // Build all days of month for chart
+  const daysInMonth = new Date(curYear, curMonth+1, 0).getDate();
+  const todayStr = now.toISOString().split('T')[0];
+  let chartHTML = '';
+  let labelsHTML = '';
+  const chartDays = Array.from({length:daysInMonth},(_,i)=>{
+    const d = i+1;
+    const ds = `${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    return { d, ds, total: byDay[ds]?.total||0 };
+  });
+
+  const chartMax = Math.max(...chartDays.map(x=>x.total), 1);
+  chartDays.forEach(({d,ds,total}) => {
+    const h = Math.round((total/chartMax)*100);
+    const isToday = ds === todayStr;
+    const cls = total===0 ? 'empty' : (isToday ? 'today' : '');
+    chartHTML += `<div class="chart-bar-wrap"><div class="chart-bar ${cls}" style="height:${h}%"><div class="chart-tooltip">${fmtDate(ds)}<br>${fmt(total)}</div></div></div>`;
+    labelsHTML += (d%5===1||d===1) ? `<span>${d}</span>` : '';
+  });
+
+  document.getElementById('gun-chart').innerHTML = chartHTML;
+  document.getElementById('gun-chart-labels').innerHTML = labelsHTML;
+
+  // Day-by-day list
+  if(!days.length) {
+    document.getElementById('gun-list').innerHTML = '<div class="empty-state"><div class="e-icon">📅</div><p>Bu ay harcama yok</p></div>';
+    return;
+  }
+
+  document.getElementById('gun-list').innerHTML = days.map(d => {
+    const { total, items } = byDay[d];
+    const itemsHTML = items.map(item => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:14px;">${CAT_ICONS[item.cat]||'📦'}</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;">${item.desc}</div>
+            <div style="font-size:10px;color:var(--sub);font-family:'DM Mono',monospace;">${item.cat} · ${item.type==='kart'?'💳':'💵'}</div>
+          </div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;color:${item.type==='kart'?'var(--gold2)':'var(--green)'};">${fmt(item.amount)}</div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="day-section">
+        <div class="day-section-header">
+          <div class="day-section-date"><strong>${fmtDateFull(d)}</strong></div>
+          <div class="day-section-total">${fmt(total)}</div>
+        </div>
+        ${itemsHTML}
+      </div>
+    `;
+  }).join('');
+}
+
+/* --- AYLIK --- */
+function renderAylik() {
+  const selYear = curYear;
+  document.getElementById('ay-yil-label').textContent = `${selYear}`;
+
+  const months = Array.from({length:12},(_,i)=>{
+    const key = `cuzdan_${selYear}_${i}`;
+    let arr = [];
+    try { arr = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e){}
+    const total = arr.reduce((a,b)=>a+b.amount,0);
+    return { i, total, count: arr.length };
+  });
+
+  const maxVal = Math.max(...months.map(m=>m.total), 1);
+  const activeMths = months.filter(m=>m.total>0);
+  const avgVal = activeMths.length ? activeMths.reduce((a,m)=>a+m.total,0)/activeMths.length : 0;
+  const maxMth = months.reduce((a,b)=>b.total>a.total?b:a, {total:0,i:0});
+  const yilTotal = months.reduce((a,m)=>a+m.total,0);
+
+  document.getElementById('ay-max-val').textContent = fmt(maxMth.total);
+  document.getElementById('ay-max-name').textContent = AYLAR[maxMth.i];
+  document.getElementById('ay-avg-val').textContent = fmt(avgVal);
+  document.getElementById('ay-total-val').textContent = fmt(yilTotal);
+  document.getElementById('ay-total-sub').textContent = `${selYear} yılı · ${months.reduce((a,m)=>a+m.count,0)} işlem`;
+
+  // Chart
+  let chartHTML = '';
+  months.forEach(m => {
+    const h = Math.round((m.total/maxVal)*100);
+    const isCur = m.i===curMonth && selYear===curYear;
+    const cls = m.total===0 ? 'empty' : (isCur?'current-month':'');
+    chartHTML += `<div class="chart-bar-wrap"><div class="chart-bar ${cls}" style="height:${Math.max(h,2)}%"><div class="chart-tooltip">${AYLAR[m.i]}<br>${fmt(m.total)}</div></div></div>`;
+  });
+
+  document.getElementById('ay-chart').innerHTML = chartHTML;
+  document.getElementById('ay-chart-labels').innerHTML = months.map(m=>`<span>${AYLAR[m.i].slice(0,3)}</span>`).join('');
+
+  // List
+  const listMths = [...months].filter(m=>m.total>0).sort((a,b)=>b.total-a.total);
+  document.getElementById('ay-list').innerHTML = listMths.length
+    ? listMths.map(m => `
+        <div class="period-row">
+          <div class="period-row-left">
+            <div class="period-row-name">${AYLAR[m.i]}</div>
+            <div class="period-row-sub">${m.count} işlem</div>
+          </div>
+          <div class="period-row-bar-wrap"><div class="period-row-bar" style="width:${(m.total/maxVal*100).toFixed(1)}%"></div></div>
+          <div class="period-row-amount">${fmt(m.total)}</div>
+        </div>
+      `).join('')
+    : '<div class="empty-state"><div class="e-icon">📅</div><p>Bu yıl veri yok</p></div>';
+}
+
+/* --- YILLIK --- */
+function renderYillik() {
+  // Scan all localStorage keys
+  const years = {};
+  for(let i=0; i<localStorage.length; i++) {
+    const k = localStorage.key(i);
+    const m = k?.match(/^cuzdan_(\d{4})_(\d{1,2})$/);
+    if(!m) continue;
+    const y = parseInt(m[1]);
+    let arr = [];
+    try { arr = JSON.parse(localStorage.getItem(k)||'[]'); } catch(e){}
+    if(!years[y]) years[y] = { total:0, count:0 };
+    years[y].total += arr.reduce((a,b)=>a+b.amount,0);
+    years[y].count += arr.length;
+  }
+
+  const yList = Object.keys(years).sort();
+  if(!yList.length) {
+    document.getElementById('yil-chart').innerHTML = '';
+    document.getElementById('yil-list').innerHTML = '<div class="empty-state"><div class="e-icon">📅</div><p>Henüz veri yok</p></div>';
+    return;
+  }
+
+  const maxVal = Math.max(...yList.map(y=>years[y].total), 1);
+
+  let chartHTML = '';
+  yList.forEach(y => {
+    const h = Math.round((years[y].total/maxVal)*100);
+    const isCur = parseInt(y)===curYear;
+    const cls = isCur ? 'current-month' : '';
+    chartHTML += `<div class="chart-bar-wrap" style="min-width:50px;max-width:80px;"><div class="chart-bar ${cls}" style="height:${Math.max(h,2)}%;width:40px;"><div class="chart-tooltip">${y}<br>${fmt(years[y].total)}</div></div></div>`;
+  });
+
+  document.getElementById('yil-chart').innerHTML = chartHTML;
+  document.getElementById('yil-chart-labels').innerHTML = yList.map(y=>`<span style="min-width:50px;text-align:center;">${y}</span>`).join('');
+
+  document.getElementById('yil-list').innerHTML = yList.slice().reverse().map(y => `
+    <div class="period-row">
+      <div class="period-row-left">
+        <div class="period-row-name">${y}</div>
+        <div class="period-row-sub">${years[y].count} işlem</div>
+      </div>
+      <div class="period-row-bar-wrap"><div class="period-row-bar" style="width:${(years[y].total/maxVal*100).toFixed(1)}%"></div></div>
+      <div class="period-row-amount">${fmt(years[y].total)}</div>
+    </div>
+  `).join('');
+}
+
+/* --- CAT STATS --- */
+function renderCatStats() {
+  let data = [];
+  let scopeLabel = '';
+
+  if(viewMode === 'gun') {
+    data = getData();
+    scopeLabel = `${AYLAR[curMonth]} ${curYear}`;
+  } else if(viewMode === 'ay') {
+    for(let i=0; i<12; i++) {
+      try { data = data.concat(JSON.parse(localStorage.getItem(`cuzdan_${curYear}_${i}`)||'[]')); } catch(e){}
+    }
+    scopeLabel = `${curYear} yılı`;
+  } else {
+    for(let k=0; k<localStorage.length; k++) {
+      const key = localStorage.key(k);
+      if(key?.match(/^cuzdan_\d{4}_\d{1,2}$/)) {
+        try { data = data.concat(JSON.parse(localStorage.getItem(key)||'[]')); } catch(e){}
+      }
+    }
+    scopeLabel = 'Tüm zamanlar';
+  }
+
+  document.getElementById('cat-scope-label').textContent = scopeLabel;
+
+  const cats = {};
+  data.forEach(x => { cats[x.cat] = (cats[x.cat]||0) + x.amount; });
+  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1]||1;
+
+  document.getElementById('catStats').innerHTML = sorted.length
+    ? sorted.map(([cat,amt])=>`
+        <div class="cat-row">
+          <div class="cat-row-left">${CAT_ICONS[cat]||'📦'} ${cat}</div>
+          <div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${(amt/max*100).toFixed(1)}%"></div></div>
+          <div class="cat-row-amount">${fmt(amt)}</div>
+        </div>
+      `).join('')
+    : '<div class="empty-state"><div class="e-icon">📊</div><p>Veri yok</p></div>';
+}
+
+function fmtDateFull(d) {
+  if(!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${day} ${AYLAR[parseInt(m)-1]} ${y}`;
+}
+
+// SETTINGS
+function loadSettings() {
+  const s = getSettings();
+  document.getElementById('limitInput').value = s.limit||'';
+  document.getElementById('warnInput').value = s.warn||80;
+}
+
+function saveLimit() {
+  const s = getSettings();
+  s.limit = parseFloat(document.getElementById('limitInput').value)||0;
+  saveSettings(s);
+  toast('Limit kaydedildi ✓','success');
+  render();
+}
+
+function saveWarn() {
+  const s = getSettings();
+  s.warn = parseFloat(document.getElementById('warnInput').value)||80;
+  saveSettings(s);
+  toast('Uyarı eşiği kaydedildi ✓','success');
+  render();
+}
+
+function resetAll() {
+  if(!confirm('Tüm veriler silinsin mi? Bu geri alınamaz!')) return;
+  localStorage.clear();
+  toast('Tüm veriler silindi','error');
+  render();
+}
+
+// CSV
+function handleCSV(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const rows = text.split('\n').filter(r=>r.trim()).map(r=>r.split(/[,;|\t]/));
+    if(rows.length < 2) { toast('CSV okunamadı','error'); return; }
+    csvData = rows;
+    const headers = rows[0];
+
+    // Preview
+    const previewRows = rows.slice(1,4).map(r=>`<div class="csv-preview-row">${r.map((c,i)=>`<span>${headers[i]||i}: ${c.trim()}</span>`).join(' &nbsp;|&nbsp; ')}</div>`).join('');
+    document.getElementById('csvPreviewRows').innerHTML = previewRows;
+    document.getElementById('csvPreview').style.display = 'block';
+
+    // Map selects
+    const opts = headers.map((h,i)=>`<option value="${i}">${h.trim()}</option>`).join('');
+    document.getElementById('csvDescCol').innerHTML = opts;
+    document.getElementById('csvAmtCol').innerHTML = opts;
+    document.getElementById('csvDateCol').innerHTML = opts;
+    document.getElementById('csvMapArea').style.display = 'block';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function setCsvType(t, btn) {
+  csvType = t;
+  document.querySelectorAll('#csvMapArea .type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function importCSV() {
+  if(!csvData) return;
+  const di = parseInt(document.getElementById('csvDescCol').value);
+  const ai = parseInt(document.getElementById('csvAmtCol').value);
+  const dti = parseInt(document.getElementById('csvDateCol').value);
+
+  const arr = getData();
+  let count = 0;
+  const rows = csvData.slice(1);
+
+  rows.forEach(row => {
+    if(row.length < 2) return;
+    const desc = row[di]?.trim();
+    const rawAmt = row[ai]?.trim().replace(/[^0-9.,]/g,'').replace(',','.');
+    const amount = parseFloat(rawAmt);
+    const rawDate = row[dti]?.trim();
+    if(!desc||!amount||amount<=0) return;
+
+    // Try to parse date
+    let date = now.toISOString().split('T')[0];
+    if(rawDate) {
+      const d = new Date(rawDate);
+      if(!isNaN(d)) date = d.toISOString().split('T')[0];
+    }
+
+    arr.unshift({ id: Date.now()+Math.random(), desc, amount, cat:'Diğer', date, type: csvType });
+    count++;
+  });
+
+  saveData(arr);
+  toast(`${count} işlem import edildi ✓`,'success');
+  csvData = null;
+  document.getElementById('csvPreview').style.display = 'none';
+  document.getElementById('csvMapArea').style.display = 'none';
+  document.getElementById('csvFileInput').value = '';
+  render();
+}
+
+// TOAST
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+render();
+</script>
+</body>
+</html>
